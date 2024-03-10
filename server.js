@@ -10,6 +10,7 @@ const { rootPath } = require("./utils/rootPath");
 
 const { userRoute } = require("./routes/user");
 const authRoute = require('./routes/auth');
+const homeRoute = require("./routes/home");
 
 // Configs
 dotEnv.config({ path: "./config/local.env" });
@@ -26,9 +27,9 @@ express.static(path.join(rootPath, "public"))
 
 
 // Routes
+app.use("/", homeRoute);
 app.use("/user", userRoute);
-app.use("auth", authRoute);
-
+app.use("/auth", authRoute);
 
 // start server
 connectDb()

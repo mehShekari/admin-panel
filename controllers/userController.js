@@ -1,7 +1,6 @@
 const userModel = require('../models/userModel');
 
-exports.users = async (req, res) =>
-{
+exports.users = async (req, res) => {
   try {
     const data = userModel.findAll()
     res

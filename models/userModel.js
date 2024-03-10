@@ -7,6 +7,11 @@ const UserModel = sequelize.define("User_table", {
     primaryKey: true,
     autoIncrement: true
   },
+  token: {
+    type: DataTypes.CHAR,
+    unique: true,
+    allowNull: false
+  },
   fullName: {
     type: DataTypes.CHAR,
     allowNull: false,
