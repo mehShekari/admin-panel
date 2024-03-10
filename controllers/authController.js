@@ -76,10 +76,13 @@ const registerController = async (req, res) => {
       strict: true
     });
     if (isValid) {
-      const data = await UserModels.findAll();
-      const existingUser = data.find(_data => _data.email === body.email);
+      const user = await UserModels.findOne({
+        where: {
+          email: body.email
+        }
+      });
 
-      if (!existingUser) {
+      if (!user) {
         // bcrypt.genSalt(saltRounds, (err, salt) => {
         // if (err) return console.log(err)
         bcrypt.hash(body.password, saltRounds, (err, hash) => {
