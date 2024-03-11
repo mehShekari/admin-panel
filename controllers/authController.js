@@ -3,7 +3,8 @@ const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 
-const UserModels = require("../models/userModel");
+const UsersModel = require("../models/userModel");
+const TokensModel = require('../models/tokens');
 
 const loginSchema = object({
   email: string().email("this is not valid email").required("this is required"),
@@ -21,7 +22,7 @@ const loginController = async (req, res) => {
       strict: true
     })
     if (isValid) {
-      const user = await UserModels.findOne({
+      const user = await UsersModel.findOne({
         where: {
           email: body.email
         }
@@ -32,12 +33,16 @@ const loginController = async (req, res) => {
         const matched = await bcrypt.compare(body.password, userClone.password);
 
         if (matched) {
-          const accessToken = await jwt.sign({ id: userClone.token }, process.env.ACCESS_SECRET_TOKEN, { expiresIn: '60s' });
+          const accessToken = generateAccessToken({ id: userClone.token });
+          const refreshToken = jwt.sign({ id: userClone.token }, process.env.REFRESH_SECRET_TOKEN);
+
+          await TokensModel.create({ token: refreshToken })
           res.status(200)
             .json({
               ok: true,
               message: "successful login",
-              authToken: accessToken
+              authToken: accessToken,
+              refreshToken: refreshToken
             })
         } else {
           return res.json({ ok: false, message: 'userName or password is not correct' });
@@ -57,6 +62,7 @@ const loginController = async (req, res) => {
     const errorSchema = error.inner?.reduce((_prev, _curr, _index) => ({
       ..._prev, [_curr.path]: error.errors[_index]
     }), {})
+    console.log(error);
     res.status(416)
       .json({ ok: false, message: errorSchema })
   }
@@ -78,15 +84,13 @@ const registerController = async (req, res) => {
       strict: true
     });
     if (isValid) {
-      const user = await UserModels.findOne({
+      const user = await UsersModel.findOne({
         where: {
           email: body.email
         }
       });
 
       if (!user) {
-        // bcrypt.genSalt(saltRounds, (err, salt) => {
-        // if (err) return console.log(err)
         bcrypt.hash(body.password, saltRounds, (err, hash) => {
           if (err) return console.log(err)
           const newBody = {
@@ -94,7 +98,7 @@ const registerController = async (req, res) => {
             password: hash,
             token: uuidv4()
           }
-          UserModels.create(newBody).then(() => {
+          UsersModel.create(newBody).then(() => {
             res.status(200)
               .json({
                 ok: true,
@@ -103,7 +107,6 @@ const registerController = async (req, res) => {
               })
           });
         });
-        // });
       } else {
         res.status(404)
           .json({
@@ -121,8 +124,32 @@ const registerController = async (req, res) => {
   }
 }
 
-const refreshTokenController = (req, res) => {
-  
+const refreshTokenController = async (req, res) => {
+  const refreshToken = req.body.token;
+  if (refreshToken == null) return res.status(401).json({ ok: false, message: "error" })
+
+  const token = await TokensModel.findOne({
+    where: {
+      token: refreshToken
+    }
+  });
+
+  if (token == null) return res.status(401).json({ ok: false, message: "don't access" })
+
+  const tokenClone = token.get({ clone: true });
+  jwt.verify(tokenClone.token, process.env.REFRESH_SECRET_TOKEN, (err, user) => {
+    if (err) return res.status(403).json({ ok: false, err })
+
+    const token = generateAccessToken({ id: user.token });
+    res.status(200).json({
+      accessToken: token
+    })
+  });
+
+}
+
+const generateAccessToken = (value) => {
+  return accessToken = jwt.sign(value, process.env.ACCESS_SECRET_TOKEN, { expiresIn: '5m' });
 }
 
 module.exports = { loginController, registerController, refreshTokenController }
