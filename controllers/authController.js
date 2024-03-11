@@ -1,6 +1,7 @@
 const { object, string, ref } = require('yup');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
+const jwt = require("jsonwebtoken");
 
 const UserModels = require("../models/userModel");
 
@@ -31,11 +32,12 @@ const loginController = async (req, res) => {
         const matched = await bcrypt.compare(body.password, userClone.password);
 
         if (matched) {
+          const accessToken = await jwt.sign({ id: userClone.token }, process.env.ACCESS_SECRET_TOKEN, { expiresIn: '60s' });
           res.status(200)
             .json({
               ok: true,
               message: "successful login",
-              authToken: "1ae458787vsd8554"
+              authToken: accessToken
             })
         } else {
           return res.json({ ok: false, message: 'userName or password is not correct' });
@@ -119,6 +121,10 @@ const registerController = async (req, res) => {
   }
 }
 
-module.exports = { loginController, registerController }
+const refreshTokenController = (req, res) => {
+  
+}
+
+module.exports = { loginController, registerController, refreshTokenController }
 
 // type User = InferType<typeof userSchema>;
