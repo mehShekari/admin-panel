@@ -137,15 +137,20 @@ const refreshTokenController = async (req, res) => {
   if (token == null) return res.status(401).json({ ok: false, message: "don't access" })
 
   const tokenClone = token.get({ clone: true });
-  jwt.verify(tokenClone.token, process.env.REFRESH_SECRET_TOKEN, (err, user) => {
+  jwt.verify(tokenClone.token, process.env.REFRESH_SECRET_TOKEN, async (err, user) => {
     if (err) return res.status(403).json({ ok: false, err })
 
     const token = generateAccessToken({ id: user.token });
     res.status(200).json({
       accessToken: token
     })
-  });
 
+    try {
+      await TokensModel.destroy({ where: { token: tokenClone.token } });
+    } catch (error) {
+      console.log("error in deleting refreshToken", error)
+    }
+  });
 }
 
 const generateAccessToken = (value) => {
