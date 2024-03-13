@@ -1,8 +1,7 @@
 const { DataTypes } = require("sequelize");
-
 const { sequelize } = require("../db/db");
 
-sequelize.define('posts_table', {
+const PostsModel = sequelize.define('posts', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -21,5 +20,15 @@ sequelize.define('posts_table', {
     validate: {
       len: [4, 255]
     }
+  },
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'users',
+      key: 'id'
+    }
   }
 })
+
+module.exports = PostsModel;

@@ -1,7 +1,8 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../db/db');
+const PostsModel = require('./posts');
 
-const UserModel = sequelize.define("User_table", {
+const UserModel = sequelize.define("users", {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -28,6 +29,16 @@ const UserModel = sequelize.define("User_table", {
       len: [4, 245]
     }
   }
+})
+
+UserModel.hasMany(PostsModel, {
+  foreignKey: 'userId',
+  constraints: true
+})
+
+PostsModel.belongsTo(UserModel, {
+  foreignKey: 'userId',
+  constraints: true
 })
 
 module.exports = UserModel

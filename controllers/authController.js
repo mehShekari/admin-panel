@@ -154,7 +154,7 @@ const refreshTokenController = async (req, res) => {
 }
 
 const generateAccessToken = (value) => {
-  return accessToken = jwt.sign(value, process.env.ACCESS_SECRET_TOKEN, { expiresIn: '5m' });
+  return accessToken = jwt.sign(value, process.env.ACCESS_SECRET_TOKEN, { expiresIn: '60m' });
 }
 
 module.exports = { loginController, registerController, refreshTokenController }

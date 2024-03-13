@@ -1,6 +1,5 @@
 const { Sequelize } = require('sequelize');
 
-
 const sequelize = new Sequelize({
   database: "paneladmin_db",
   username: "root",
