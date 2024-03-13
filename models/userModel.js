@@ -32,7 +32,7 @@ const UserModel = sequelize.define("users", {
 })
 
 UserModel.hasMany(PostsModel, {
-  foreignKey: 'userId',
+  foreignKey: 'id',
   constraints: true
 })
 
